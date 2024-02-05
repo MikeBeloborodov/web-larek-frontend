@@ -1,3 +1,5 @@
+import { IProduct } from '../../types';
+
 export type ApiListResponse<Type> = {
 	total: number;
 	items: Type[];
@@ -17,7 +19,7 @@ export class Api {
 		};
 	}
 
-	protected async handleResponse(response: Response): Promise<object> {
+	protected async handleResponse(response: Response): Promise<Partial<object>> {
 		if (response.ok) return response.json();
 		else
 			return response
