@@ -2,12 +2,12 @@ import { Page } from './components/Page';
 import { Api } from './components/base/api';
 import { EventEmitter } from './components/base/events';
 import { Modal } from './components/common/Modal';
-import { StoreItem } from './components/Card';
-import { AppState, StoreChangeEvent } from './components/AppData';
+import { StoreItem, StoreItemPreview } from './components/Card';
+import { AppState, Product } from './components/AppData';
 import { ensureElement, cloneTemplate } from './utils/utils';
-import './scss/styles.scss';
 import { ApiResponse, IProduct } from './types';
 import { API_URL } from './utils/constants';
+import './scss/styles.scss';
 
 const api = new Api(API_URL);
 const events = new EventEmitter();
@@ -15,6 +15,7 @@ const events = new EventEmitter();
 // Все шаблоны
 const storeProductTemplate =
 	ensureElement<HTMLTemplateElement>('#card-catalog');
+const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
@@ -35,7 +36,7 @@ api
 	});
 
 // Изменились элементы каталога
-events.on<StoreChangeEvent>('items:changed', () => {
+events.on('items:changed', () => {
 	page.store = appData.store.map((item) => {
 		const product = new StoreItem(cloneTemplate(storeProductTemplate), {
 			onClick: () => events.emit('card:select', item),
@@ -48,6 +49,31 @@ events.on<StoreChangeEvent>('items:changed', () => {
 			price: item.price,
 		});
 	});
+});
 
-	page.counter = appData.getBasketCount();
+// Открытие карточки
+events.on('card:select', (item: Product) => {
+	page.locked = true;
+	const product = new StoreItemPreview(cloneTemplate(cardPreviewTemplate), {
+		onClick: () => {
+			appData.addToBasket(item);
+			page.counter = appData.getTotal();
+			modal.close();
+		},
+	});
+	modal.render({
+		content: product.render({
+			id: item.id,
+			title: item.title,
+			image: item.image,
+			category: item.category,
+			description: item.description,
+			price: item.price,
+		}),
+	});
+});
+
+// Закрытие карточки
+events.on('modal:close', () => {
+	page.locked = false;
 });
