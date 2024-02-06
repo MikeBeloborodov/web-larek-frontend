@@ -32,16 +32,20 @@ export class AppState extends Model<IAppState> {
 	preview: string | null;
 	formErrors: FormErrors = {};
 
-	clearBasket() {}
+	addToBasket(value: Product) {
+		this.basket.push(value);
+	}
 
-	getTotal() {}
-
-	getBasketCount() {
-		return this.basket.length;
+	clearBasket() {
+		this.basket.length = 0;
 	}
 
 	setBasket() {
 		this.basket = [];
+	}
+
+	getTotal() {
+		return this.basket.length;
 	}
 
 	setStore(items: IProduct[]) {

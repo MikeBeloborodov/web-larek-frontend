@@ -12,6 +12,7 @@ export interface ICard {
 	id: string;
 	title: string;
 	category: string;
+	description: string;
 	image: string;
 	price: number | null;
 }
@@ -81,9 +82,21 @@ export class Card extends Component<ICard> {
 }
 
 export class StoreItem extends Card {
-	protected _status: HTMLElement;
+	constructor(container: HTMLElement, actions?: ICardActions) {
+		super('card', container, actions);
+	}
+}
+
+export class StoreItemPreview extends Card {
+	protected _description: HTMLElement;
 
 	constructor(container: HTMLElement, actions?: ICardActions) {
 		super('card', container, actions);
+
+		this._description = container.querySelector(`.${this.blockName}__text`);
+	}
+
+	set description(value: string) {
+		this._description.textContent = value;
 	}
 }
