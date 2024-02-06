@@ -73,6 +73,9 @@ export class Card extends Component<ICard> {
 		this._price.textContent = value
 			? handlePrice(value) + ' синапсов'
 			: 'Бесценно';
+		if (this._button && !value) {
+			this._button.disabled = true;
+		}
 	}
 
 	set category(value: CategoryType) {
