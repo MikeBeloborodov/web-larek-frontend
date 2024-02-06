@@ -1,6 +1,15 @@
 import { Model } from '../components/base/Model';
 
-type PaymentType = 'online' | 'on_recieve';
+export type CategoryType =
+	| 'другое'
+	| 'софт-скил'
+	| 'дополнительное'
+	| 'кнопка'
+	| 'хард-скил';
+export type CategoryMapping = {
+	[Key in CategoryType]: string;
+};
+export type PaymentType = 'online' | 'on_recieve';
 export type FormErrors = Partial<Record<keyof IOrder, string>>;
 
 export interface ApiResponse {
@@ -12,7 +21,7 @@ export interface IProduct {
 	description: string;
 	image: string;
 	title: string;
-	category: string;
+	category: CategoryType;
 	price: number | null;
 }
 

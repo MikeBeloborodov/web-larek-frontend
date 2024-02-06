@@ -47,3 +47,16 @@ export function cloneTemplate<T extends HTMLElement>(
 	const template = ensureElement(query) as HTMLTemplateElement;
 	return template.content.firstElementChild.cloneNode(true) as T;
 }
+
+export function handlePrice(price: number): string {
+	const priceStr = price.toString();
+	if (priceStr.length < 5) {
+		return price.toString();
+	}
+	return priceStr
+		.split('')
+		.reverse()
+		.map((s, i) => ((i + 1) % 3 === 0 ? ' ' + s : s))
+		.reverse()
+		.join('');
+}
