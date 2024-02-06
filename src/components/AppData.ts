@@ -1,10 +1,6 @@
-import { IOrder, IProduct, FormErrors, ProductModel } from '../types';
+import { IOrder, IProduct, FormErrors } from '../types';
 import { Model } from './base/Model';
 import { IAppState } from '../types';
-
-export type StoreChangeEvent = {
-	store: Product[];
-};
 
 export class Product extends Model<IProduct> {
 	id: string;
@@ -13,9 +9,6 @@ export class Product extends Model<IProduct> {
 	title: string;
 	category: string;
 	price: number | null;
-
-	addProduct(product: IProduct): void {}
-	deleteProduct(productId: string): void {}
 }
 
 export class AppState extends Model<IAppState> {
@@ -46,6 +39,10 @@ export class AppState extends Model<IAppState> {
 
 	getTotal() {
 		return this.basket.length;
+	}
+
+	getTotalBasketPrice() {
+		return this.basket.reduce((sum, next) => sum + next.price, 0);
 	}
 
 	setStore(items: IProduct[]) {

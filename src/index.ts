@@ -8,6 +8,7 @@ import { ensureElement, cloneTemplate } from './utils/utils';
 import { ApiResponse, IProduct } from './types';
 import { API_URL } from './utils/constants';
 import './scss/styles.scss';
+import { Basket, StoreItemBasket } from './components/Basket';
 
 const api = new Api(API_URL);
 const events = new EventEmitter();
@@ -16,6 +17,8 @@ const events = new EventEmitter();
 const storeProductTemplate =
 	ensureElement<HTMLTemplateElement>('#card-catalog');
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
+const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
+const cardBasketTempkate = ensureElement<HTMLTemplateElement>('#card-basket');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
@@ -76,4 +79,31 @@ events.on('card:select', (item: Product) => {
 // Закрытие карточки
 events.on('modal:close', () => {
 	page.locked = false;
+});
+
+// Открытие корзины
+events.on('basket:open', () => {
+	const basket = new Basket('basket', cloneTemplate(basketTemplate), {
+		onClick: () => {},
+	});
+	const basketItems = appData.basket.map((item, index) => {
+		const storeItem = new StoreItemBasket(
+			'card',
+			cloneTemplate(cardBasketTempkate),
+			{
+				onClick: () => {},
+			}
+		);
+		return storeItem.render({
+			title: item.title,
+			price: item.price,
+			index: index + 1,
+		});
+	});
+	modal.render({
+		content: basket.render({
+			list: basketItems,
+			price: appData.getTotalBasketPrice(),
+		}),
+	});
 });
