@@ -1,5 +1,5 @@
-@use "variables" as *;
-@use "mixins";
+@use 'variables' as *;
+@use 'mixins';
 
 .button {
   @include mixins.button($primary, white, $hover);
@@ -8,6 +8,7 @@
   &_alt {
     @include mixins.button(white, $primaryLight, $primaryLight);
     border: $defaultBorder;
+
     &:hover {
       border: $hoverBorder;
     }
