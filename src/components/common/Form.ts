@@ -31,7 +31,6 @@ export class Form<T> extends Component<IFormState> {
       e.preventDefault();
       this.events.emit(`${this.container.name}:submit`);
     });
-
   }
 
   protected onInputChange(field: keyof T, value: string) {

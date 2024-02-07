@@ -1,82 +1,47 @@
-import { Component } from './base/Component';
-
-interface IOrderActions {
-  onClickNext: (event: MouseEvent) => void;
-  onClickCash: (event: MouseEvent) => void;
-  onClickCard: (event: MouseEvent) => void;
-  onInput: (event: InputEvent) => void;
-}
+import { IEvents } from './base/events';
+import { Form } from './common/Form';
 
 export interface IOrder {
-  isFilled: boolean;
   address: string;
+  payment: string;
 }
 
-export class Order extends Component<IOrder> {
-  protected _nextButton: HTMLButtonElement;
-  protected _cashButton: HTMLButtonElement;
-  protected _cardButton: HTMLButtonElement;
-  protected _input: HTMLInputElement;
+export class Order extends Form<IOrder> {
+  protected _card: HTMLButtonElement;
+  protected _cash: HTMLButtonElement;
 
   constructor(
     protected blockName: string,
-    container: HTMLElement,
-    actions?: IOrderActions
+    container: HTMLFormElement,
+    protected events: IEvents
   ) {
-    super(container);
+    super(container, events);
 
-    this._nextButton = container.querySelector(`.${blockName}__button`);
-    this._cashButton = container.querySelector('button[name="cash"]');
-    this._cardButton = container.querySelector('button[name="card"]');
-    this._input = container.querySelector('input');
+    this._card = container.elements.namedItem('card') as HTMLButtonElement;
+    this._cash = container.elements.namedItem('cash') as HTMLButtonElement;
 
-    if (actions?.onClickNext) {
-      if (this._nextButton) {
-        this._nextButton.addEventListener('click', (evt) => {
-          evt.preventDefault();
-          actions.onClickNext(evt);
-        });
-      }
+    if (this._cash) {
+      this._cash.addEventListener('click', () => {
+        this._cash.classList.add('button_alt-active')
+        this._card.classList.remove('button_alt-active')
+        this.onInputChange('payment', 'cash')
+      })
     }
-
-    if (actions?.onClickCard) {
-      if (this._cardButton) {
-        this._cardButton.addEventListener('click', actions.onClickCard);
-      }
-    }
-
-    if (actions?.onClickCash) {
-      if (this._cashButton) {
-        this._cashButton.addEventListener('click', actions.onClickCash);
-      }
-    }
-
-    if (actions?.onInput) {
-      if (this._input) {
-        this._input.addEventListener('input', actions.onInput);
-      }
+    if (this._card) {
+      this._card.addEventListener('click', () => {
+        this._card.classList.add('button_alt-active')
+        this._cash.classList.remove('button_alt-active')
+        this.onInputChange('payment', 'card')
+      })
     }
   }
 
-  get address() {
-    return this._input.value;
+  disableButtons() {
+    this._cash.classList.remove('button_alt-active')
+    this._card.classList.remove('button_alt-active')
   }
 
-  get isFilled() {
-    return (
-      this._input.value.length &&
-      (this._cardButton.classList.contains('button_alt-active') ||
-        this._cashButton.classList.contains('button_alt-active'))
-    );
-  }
-
-  toggleCashButton() {
-    this._cardButton.classList.remove('button_alt-active');
-    this._cashButton.classList.add('button_alt-active');
-  }
-
-  toggleCardButton() {
-    this._cardButton.classList.add('button_alt-active');
-    this._cashButton.classList.remove('button_alt-active');
+  set address(value: string) {
+    (this.container.elements.namedItem('address') as HTMLInputElement).value = value;
   }
 }

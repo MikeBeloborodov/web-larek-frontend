@@ -62,17 +62,3 @@ export function handlePrice(price: number): string {
       .reverse()
       .join('');
 }
-
-export const checkForm = (element: Order, selector: string) => {
-  if (element.isFilled) {
-    element.setDisabled(
-      ensureElement<HTMLButtonElement>(selector),
-      false
-    );
-  } else {
-    element.setDisabled(
-      ensureElement<HTMLButtonElement>(selector),
-      true
-    );
-  }
-};
