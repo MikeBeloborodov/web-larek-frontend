@@ -10,6 +10,7 @@ import { API_URL } from './utils/constants';
 import './scss/styles.scss';
 import { Basket, StoreItemBasket } from './components/Basket';
 import { Order } from './components/Order';
+import { Contacts } from './components/Contacts';
 
 const api = new Api(API_URL);
 const events = new EventEmitter();
@@ -21,6 +22,7 @@ const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
 const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
 const cardBasketTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
 const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
+const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
@@ -127,7 +129,7 @@ events.on('basket:order', () => {
   };
   const order = new Order('order', cloneTemplate(orderTemplate), {
     onClickNext: () => {
-      events.emit('order:details');
+      events.emit('order:contacts');
     },
     onClickCash: () => {
       order.toggleCashButton();
@@ -147,6 +149,32 @@ events.on('basket:order', () => {
 });
 
 // Заполнить телефон и почту
-events.on('order:details', () => {
-  console.log('order!');
+events.on('order:contacts', () => {
+  const contacts = new Contacts('contacts', cloneTemplate(contactsTemplate), {
+    onPhoneInput: () => {
+      checkForm();
+    },
+    onEmailInput: () => {
+      checkForm();
+    },
+    onClickNext: () => {
+      console.log('complete!');
+    },
+  });
+  const checkForm = () => {
+    if (contacts.isFilled) {
+      contacts.setDisabled(
+        ensureElement<HTMLButtonElement>('form[name="contacts"] .button'),
+        false
+      );
+    } else {
+      contacts.setDisabled(
+        ensureElement<HTMLButtonElement>('form[name="contacts"] .button'),
+        true
+      );
+    }
+  };
+  modal.render({
+    content: contacts.render(),
+  });
 });
