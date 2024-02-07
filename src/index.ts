@@ -5,7 +5,7 @@ import { Modal } from './components/common/Modal';
 import { StoreItem, StoreItemPreview } from './components/Card';
 import { AppState, Product } from './components/AppData';
 import { ensureElement, cloneTemplate, checkForm } from './utils/utils';
-import { ApiResponse, IProduct } from './types';
+import { ApiResponse, IOrderForm, IProduct } from './types';
 import { API_URL } from './utils/constants';
 import './scss/styles.scss';
 import { Basket, StoreItemBasket } from './components/Basket';
@@ -34,11 +34,7 @@ const page = new Page(document.body, events);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 
 // Переиспользуемые компоненты
-const basket = new Basket('basket', cloneTemplate(basketTemplate), {
-  onClick: () => {
-    events.emit('basket:order')
-  },
-});
+const basket = new Basket('basket', cloneTemplate(basketTemplate));
 const order = new Order('order', cloneTemplate(orderTemplate), {
   onClickNext: () => {
     if (order.isFilled) {
@@ -62,26 +58,7 @@ const order = new Order('order', cloneTemplate(orderTemplate), {
     checkForm(order, '.order__button');
   },
 });
-const contacts = new Contacts('contacts', cloneTemplate(contactsTemplate), {
-  onPhoneInput: () => {
-    appData.order.phone = contacts.phone;
-    checkForm(contacts, 'form[name="contacts"] .button');
-  },
-  onEmailInput: () => {
-    appData.order.email = contacts.email;
-    checkForm(contacts, 'form[name="contacts"] .button');
-  },
-  onClickNext: () => {
-    api.post('/order', appData.order).then((res) => {
-      events.emit('order:success', res);
-      appData.clearBasket();
-      appData.refreshOrder();
-      page.counter = 0;
-    }).catch((err) => {
-      console.error(err);
-    });
-  },
-});
+const contacts = new Contacts(cloneTemplate(contactsTemplate), events);
 const success = new Success('order-success', cloneTemplate(successTemplate), {
   onClick: () => {
     events.emit('modal:close')
@@ -177,9 +154,42 @@ events.on('basket:order', () => {
 // Заполнить телефон и почту
 events.on('order:contacts', () => {
   modal.render({
-    content: contacts.render(),
+    content: contacts.render(
+      {
+        phone: '',
+        email: '',
+        valid: false,
+        errors: []
+      }
+    ),
   });
 });
+
+// Изменилось состояние валидации формы
+events.on('formErrors:change', (errors: Partial<IOrderForm>) => {
+  const { email, phone } = errors;
+  contacts.valid = !email && !phone;
+  contacts.errors = Object.values({ phone, email }).filter(i => !!i).join('; ');
+});
+
+// Изменились контакты
+events.on('orderInput:change', (data: { field: keyof IOrderForm, value: string }) => {
+  appData.setOrderField(data.field, data.value);
+});
+
+// Покупка товаров
+events.on('contacts:submit', () => {
+  api.post('/order', appData.order)
+    .then((res) => {
+      events.emit('order:success', res);
+      appData.clearBasket();
+      appData.refreshOrder();
+      page.counter = 0;
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+})
 
 // Окно успешной покупки
 events.on('order:success', (res: ApiListResponse<string>) => {
