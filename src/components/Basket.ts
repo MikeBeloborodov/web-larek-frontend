@@ -2,10 +2,6 @@ import { IProduct } from '../types';
 import { handlePrice } from '../utils/utils';
 import { Component } from './base/Component';
 
-interface IBasketActions {
-  onClick: (event: MouseEvent) => void;
-}
-
 export interface IBasket {
   list: HTMLElement[];
   price: number;
@@ -19,21 +15,12 @@ export class Basket extends Component<IBasket> {
   constructor(
     protected blockName: string,
     container: HTMLElement,
-    actions?: IBasketActions
   ) {
     super(container);
 
     this._button = container.querySelector(`.${blockName}__button`);
     this._price = container.querySelector(`.${blockName}__price`);
     this._list = container.querySelector(`.${blockName}__list`);
-
-    if (actions?.onClick) {
-      if (this._button) {
-        this._button.addEventListener('click', actions.onClick);
-      } else {
-        container.addEventListener('click', actions.onClick);
-      }
-    }
   }
 
   set price(price: number) {

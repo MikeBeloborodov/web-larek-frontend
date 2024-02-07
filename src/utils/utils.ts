@@ -63,7 +63,7 @@ export function handlePrice(price: number): string {
       .join('');
 }
 
-export const checkForm = (element: Order | Contacts, selector: string) => {
+export const checkForm = (element: Order, selector: string) => {
   if (element.isFilled) {
     element.setDisabled(
       ensureElement<HTMLButtonElement>(selector),

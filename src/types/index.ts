@@ -11,7 +11,7 @@ export type CategoryMapping = {
   [Key in CategoryType]: string;
 };
 export type PaymentType = 'card' | 'cash';
-export type FormErrors = Partial<Record<keyof IOrder, string>>;
+export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
 
 export interface ApiResponse {
   items: IProduct[];
@@ -47,8 +47,15 @@ interface IBasketModel {
 
 export interface IOrder {
   items: string[];
-  payment?: PaymentType;
+  payment?: string;
   total: number | null;
+  address: string;
+  email: string;
+  phone: string;
+}
+
+export interface IOrderForm {
+  payment?: PaymentType;
   address: string;
   email: string;
   phone: string;
