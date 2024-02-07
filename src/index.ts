@@ -4,7 +4,7 @@ import { EventEmitter } from './components/base/events';
 import { Modal } from './components/common/Modal';
 import { StoreItem, StoreItemPreview } from './components/Card';
 import { AppState, Product } from './components/AppData';
-import { ensureElement, cloneTemplate, checkForm } from './utils/utils';
+import { ensureElement, cloneTemplate } from './utils/utils';
 import { ApiResponse, IOrderForm, IProduct } from './types';
 import { API_URL } from './utils/constants';
 import './scss/styles.scss';
@@ -34,30 +34,8 @@ const page = new Page(document.body, events);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 
 // Переиспользуемые компоненты
-const basket = new Basket('basket', cloneTemplate(basketTemplate));
-const order = new Order('order', cloneTemplate(orderTemplate), {
-  onClickNext: () => {
-    if (order.isFilled) {
-      appData.order.total = appData.getTotalBasketPrice()
-      appData.setItems();
-      events.emit('order:contacts');
-    }
-  },
-  onClickCash: () => {
-    order.toggleCashButton();
-    appData.order.payment = 'cash'
-    checkForm(order, '.order__button');
-  },
-  onClickCard: () => {
-    order.toggleCardButton();
-    appData.order.payment = 'card'
-    checkForm(order, '.order__button');
-  },
-  onInput: () => {
-    appData.order.address = order.address;
-    checkForm(order, '.order__button');
-  },
-});
+const basket = new Basket('basket', cloneTemplate(basketTemplate), events);
+const order = new Order('order', cloneTemplate(orderTemplate), events)
 const contacts = new Contacts(cloneTemplate(contactsTemplate), events);
 const success = new Success('order-success', cloneTemplate(successTemplate), {
   onClick: () => {
@@ -147,17 +125,9 @@ events.on('basket:open', () => {
 // Оформить заказ
 events.on('basket:order', () => {
   modal.render({
-    content: order.render(),
-  });
-});
-
-// Заполнить телефон и почту
-events.on('order:contacts', () => {
-  modal.render({
-    content: contacts.render(
+    content: order.render(
       {
-        phone: '',
-        email: '',
+        address: '',
         valid: false,
         errors: []
       }
@@ -165,17 +135,38 @@ events.on('order:contacts', () => {
   });
 });
 
-// Изменилось состояние валидации формы
-events.on('formErrors:change', (errors: Partial<IOrderForm>) => {
+// Изменилось состояние валидации заказа
+events.on('orderFormErrors:change', (errors: Partial<IOrderForm>) => {
+  const { payment, address } = errors;
+  order.valid = !payment && !address;
+  order.errors = Object.values({ payment, address }).filter(i => !!i).join('; ');
+});
+
+// Изменилось состояние валидации контактов
+events.on('contactsFormErrors:change', (errors: Partial<IOrderForm>) => {
   const { email, phone } = errors;
   contacts.valid = !email && !phone;
   contacts.errors = Object.values({ phone, email }).filter(i => !!i).join('; ');
 });
 
-// Изменились контакты
+// Изменились введенные данные
 events.on('orderInput:change', (data: { field: keyof IOrderForm, value: string }) => {
   appData.setOrderField(data.field, data.value);
 });
+
+// Заполнить телефон и почту
+events.on('order:submit', () => {
+  appData.order.total = appData.getTotalBasketPrice()
+  appData.setItems();
+  modal.render({
+    content: contacts.render(
+      {
+        valid: false,
+        errors: []
+      }
+    ),
+  });
+})
 
 // Покупка товаров
 events.on('contacts:submit', () => {
@@ -184,6 +175,7 @@ events.on('contacts:submit', () => {
       events.emit('order:success', res);
       appData.clearBasket();
       appData.refreshOrder();
+      order.disableButtons();
       page.counter = 0;
     })
     .catch((err) => {

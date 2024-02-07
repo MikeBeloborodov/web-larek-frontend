@@ -1,4 +1,4 @@
-import { IOrder, IProduct, FormErrors, IOrderForm, PaymentType } from '../types';
+import { IOrder, IProduct, FormErrors, IOrderForm } from '../types';
 import { Model } from './base/Model';
 import { IAppState } from '../types';
 
@@ -51,12 +51,15 @@ export class AppState extends Model<IAppState> {
   setOrderField(field: keyof IOrderForm, value: string) {
     this.order[field] = value;
 
+    if (this.validateContacts()) {
+      this.events.emit('contacts:ready', this.order)
+    }
     if (this.validateOrder()) {
       this.events.emit('order:ready', this.order);
     }
   }
 
-  validateOrder() {
+  validateContacts() {
     const errors: typeof this.formErrors = {};
     if (!this.order.email) {
       errors.email = 'Необходимо указать email';
@@ -64,6 +67,13 @@ export class AppState extends Model<IAppState> {
     if (!this.order.phone) {
       errors.phone = 'Необходимо указать телефон';
     }
+    this.formErrors = errors;
+    this.events.emit('contactsFormErrors:change', this.formErrors);
+    return Object.keys(errors).length === 0;
+  }
+
+  validateOrder() {
+    const errors: typeof this.formErrors = {};
     if (!this.order.address) {
       errors.address = 'Необходимо указать адрес';
     }
@@ -71,7 +81,7 @@ export class AppState extends Model<IAppState> {
       errors.payment = 'Необходимо указать способ оплаты';
     }
     this.formErrors = errors;
-    this.events.emit('formErrors:change', this.formErrors);
+    this.events.emit('orderFormErrors:change', this.formErrors);
     return Object.keys(errors).length === 0;
   }
 
@@ -82,6 +92,7 @@ export class AppState extends Model<IAppState> {
       address: '',
       email: '',
       phone: '',
+      payment: ''
     };
   }
 

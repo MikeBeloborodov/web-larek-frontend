@@ -2,7 +2,6 @@ import { IEvents } from './base/events';
 import { Form } from './common/Form';
 
 export interface IContacts {
-  isFilled: boolean;
   phone: string;
   email: string;
 }
@@ -22,5 +21,4 @@ export class Contacts extends Form<IContacts> {
   set email(value: string) {
     (this.container.elements.namedItem('email') as HTMLInputElement).value = value;
   }
-
 }
