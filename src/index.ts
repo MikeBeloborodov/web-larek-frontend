@@ -44,28 +44,6 @@ const success = new Success('order-success', cloneTemplate(successTemplate), {
   }
 })
 
-//, {
-//  onClickNext: () => {
-//    if (order.isFilled) {
-//      events.emit('order:contacts');
-//    }
-//  },
-//  onClickCash: () => {
-//    order.toggleCashButton();
-//    appData.order.payment = 'cash'
-//    checkForm(order, '.order__button');
-//  },
-//  onClickCard: () => {
-//    order.toggleCardButton();
-//    appData.order.payment = 'card'
-//    checkForm(order, '.order__button');
-//  },
-//  onInput: () => {
-//    appData.order.address = order.address;
-//    checkForm(order, '.order__button');
-//  },
-//});
-
 // Получаем лоты с сервера
 api
   .get('/product')
