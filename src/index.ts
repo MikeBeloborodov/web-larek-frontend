@@ -99,7 +99,12 @@ events.on('basket:open', () => {
       'card',
       cloneTemplate(cardBasketTemplate),
       {
-        onClick: () => { },
+        onDelete: () => {
+          appData.deleteFromBasket(item.id);
+          basket.refreshIndices();
+          basket.price = appData.getTotalBasketPrice();
+          page.counter = appData.getTotal();
+        }
       }
     );
     return storeItem.render({
@@ -198,6 +203,7 @@ events.on('order:contacts', () => {
   });
 });
 
+// Окно успешной покупки
 events.on('order:success', (res: ApiListResponse<string>) => {
   const success = new Success('order-success', cloneTemplate(successTemplate), {
     onClick: () => {

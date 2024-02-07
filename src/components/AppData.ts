@@ -28,6 +28,10 @@ export class AppState extends Model<IAppState> {
     this.basket.push(value);
   }
 
+  deleteFromBasket(id: string) {
+    this.basket = this.basket.filter(item => item.id !== id)
+  }
+
   clearBasket() {
     this.basket.length = 0;
   }

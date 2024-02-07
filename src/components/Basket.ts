@@ -46,10 +46,24 @@ export class Basket extends Component<IBasket> {
       this._button.disabled = true;
     }
   }
+
+  refreshIndices() {
+    Array.from(this._list.children).forEach(
+      (item, index) =>
+      (item.querySelector(`.basket__item-index`)!.textContent = (
+        index + 1
+      ).toString())
+    );
+  }
 }
 
 export interface IProductBasket extends IProduct {
+  id: string;
   index: number;
+}
+
+export interface IStoreItemBasketActions {
+  onDelete: (event: MouseEvent) => void;
 }
 
 export class StoreItemBasket extends Component<IProductBasket> {
@@ -61,7 +75,7 @@ export class StoreItemBasket extends Component<IProductBasket> {
   constructor(
     protected blockName: string,
     container: HTMLElement,
-    actions?: IBasketActions
+    actions?: IStoreItemBasketActions
   ) {
     super(container);
 
@@ -70,12 +84,11 @@ export class StoreItemBasket extends Component<IProductBasket> {
     this._price = container.querySelector(`.${blockName}__price`);
     this._button = container.querySelector(`.${blockName}__button`);
 
-    if (actions?.onClick) {
-      if (this._button) {
-        this._button.addEventListener('click', actions.onClick);
-      } else {
-        container.addEventListener('click', actions.onClick);
-      }
+    if (this._button) {
+      this._button.addEventListener('click', (evt) => {
+        this.container.remove();
+        actions?.onDelete(evt);
+      });
     }
   }
 
