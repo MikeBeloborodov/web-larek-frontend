@@ -4,7 +4,7 @@ import { EventEmitter } from './components/base/events';
 import { Modal } from './components/common/Modal';
 import { StoreItem, StoreItemPreview } from './components/Card';
 import { AppState, Product } from './components/AppData';
-import { ensureElement, cloneTemplate } from './utils/utils';
+import { ensureElement, cloneTemplate, checkForm } from './utils/utils';
 import { ApiResponse, IProduct } from './types';
 import { API_URL } from './utils/constants';
 import './scss/styles.scss';
@@ -32,6 +32,62 @@ const appData = new AppState({}, events);
 // Глобальные контейнеры
 const page = new Page(document.body, events);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
+
+// Переиспользуемые компоненты
+const basket = new Basket('basket', cloneTemplate(basketTemplate), {
+  onClick: () => {
+    events.emit('basket:order')
+  },
+});
+const order = new Order('order', cloneTemplate(orderTemplate), {
+  onClickNext: () => {
+    if (order.isFilled) {
+      appData.order.total = appData.getTotalBasketPrice()
+      appData.setItems();
+      events.emit('order:contacts');
+    }
+  },
+  onClickCash: () => {
+    order.toggleCashButton();
+    appData.order.payment = 'cash'
+    checkForm(order, '.order__button');
+  },
+  onClickCard: () => {
+    order.toggleCardButton();
+    appData.order.payment = 'card'
+    checkForm(order, '.order__button');
+  },
+  onInput: () => {
+    appData.order.address = order.address;
+    checkForm(order, '.order__button');
+  },
+});
+const contacts = new Contacts('contacts', cloneTemplate(contactsTemplate), {
+  onPhoneInput: () => {
+    appData.order.phone = contacts.phone;
+    checkForm(contacts, 'form[name="contacts"] .button');
+  },
+  onEmailInput: () => {
+    appData.order.email = contacts.email;
+    checkForm(contacts, 'form[name="contacts"] .button');
+  },
+  onClickNext: () => {
+    api.post('/order', appData.order).then((res) => {
+      events.emit('order:success', res);
+      appData.clearBasket();
+      appData.refreshOrder();
+      page.counter = 0;
+    }).catch((err) => {
+      console.error(err);
+    });
+  },
+});
+const success = new Success('order-success', cloneTemplate(successTemplate), {
+  onClick: () => {
+    events.emit('modal:close')
+    modal.close()
+  }
+})
 
 // Получаем лоты с сервера
 api
@@ -82,18 +138,8 @@ events.on('card:select', (item: Product) => {
   });
 });
 
-// Закрытие карточки
-events.on('modal:close', () => {
-  page.locked = false;
-});
-
 // Открытие корзины
 events.on('basket:open', () => {
-  const basket = new Basket('basket', cloneTemplate(basketTemplate), {
-    onClick: () => {
-      events.emit('basket:order')
-    },
-  });
   const basketItems = appData.basket.map((item, index) => {
     const storeItem = new StoreItemBasket(
       'card',
@@ -123,42 +169,6 @@ events.on('basket:open', () => {
 
 // Оформить заказ
 events.on('basket:order', () => {
-  const checkForm = () => {
-    if (order.isFilled) {
-      order.setDisabled(
-        ensureElement<HTMLButtonElement>('.order__button'),
-        false
-      );
-    } else {
-      order.setDisabled(
-        ensureElement<HTMLButtonElement>('.order__button'),
-        true
-      );
-    }
-  };
-  const order = new Order('order', cloneTemplate(orderTemplate), {
-    onClickNext: () => {
-      if (order.isFilled) {
-        appData.order.total = appData.getTotalBasketPrice()
-        appData.setItems();
-        events.emit('order:contacts');
-      }
-    },
-    onClickCash: () => {
-      order.toggleCashButton();
-      appData.order.payment = 'cash'
-      checkForm();
-    },
-    onClickCard: () => {
-      order.toggleCardButton();
-      appData.order.payment = 'card'
-      checkForm();
-    },
-    onInput: () => {
-      appData.order.address = order.address;
-      checkForm();
-    },
-  });
   modal.render({
     content: order.render(),
   });
@@ -166,38 +176,6 @@ events.on('basket:order', () => {
 
 // Заполнить телефон и почту
 events.on('order:contacts', () => {
-  const contacts = new Contacts('contacts', cloneTemplate(contactsTemplate), {
-    onPhoneInput: () => {
-      appData.order.phone = contacts.phone;
-      checkForm();
-    },
-    onEmailInput: () => {
-      appData.order.email = contacts.email;
-      checkForm();
-    },
-    onClickNext: () => {
-      api.post('/order', appData.order).then((res) => {
-        events.emit('order:success', res)
-        appData.clearBasket()
-        page.counter = 0;
-      }).catch((err) => {
-        console.error(err);
-      });
-    },
-  });
-  const checkForm = () => {
-    if (contacts.isFilled) {
-      contacts.setDisabled(
-        ensureElement<HTMLButtonElement>('form[name="contacts"] .button'),
-        false
-      );
-    } else {
-      contacts.setDisabled(
-        ensureElement<HTMLButtonElement>('form[name="contacts"] .button'),
-        true
-      );
-    }
-  };
   modal.render({
     content: contacts.render(),
   });
@@ -205,15 +183,15 @@ events.on('order:contacts', () => {
 
 // Окно успешной покупки
 events.on('order:success', (res: ApiListResponse<string>) => {
-  const success = new Success('order-success', cloneTemplate(successTemplate), {
-    onClick: () => {
-      events.emit('modal:close')
-      modal.close()
-    }
-  })
   modal.render({
     content: success.render({
       description: res.total
     })
   })
 })
+
+// Закрытие модального окна
+events.on('modal:close', () => {
+  page.locked = false;
+  appData.refreshOrder();
+});
