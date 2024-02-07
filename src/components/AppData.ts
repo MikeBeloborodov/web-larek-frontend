@@ -16,13 +16,12 @@ export class AppState extends Model<IAppState> {
   store: Product[];
   loading: boolean;
   order: IOrder = {
-    products: [],
-    amount: null,
+    items: [],
+    total: null,
     address: '',
     email: '',
     phone: '',
   };
-  preview: string | null;
   formErrors: FormErrors = {};
 
   addToBasket(value: Product) {
@@ -39,6 +38,10 @@ export class AppState extends Model<IAppState> {
 
   getTotal() {
     return this.basket.length;
+  }
+
+  setItems() {
+    this.order.items = this.basket.map(item => item.id)
   }
 
   getTotalBasketPrice() {

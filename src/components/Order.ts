@@ -9,6 +9,7 @@ interface IOrderActions {
 
 export interface IOrder {
   isFilled: boolean;
+  address: string;
 }
 
 export class Order extends Component<IOrder> {
@@ -55,6 +56,10 @@ export class Order extends Component<IOrder> {
         this._input.addEventListener('input', actions.onInput);
       }
     }
+  }
+
+  get address() {
+    return this._input.value;
   }
 
   get isFilled() {
