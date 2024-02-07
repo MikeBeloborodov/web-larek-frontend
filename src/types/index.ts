@@ -1,3 +1,4 @@
+import { Product } from '../components/AppData';
 import { Model } from '../components/base/Model';
 
 export type CategoryType =
@@ -9,7 +10,7 @@ export type CategoryType =
 export type CategoryMapping = {
   [Key in CategoryType]: string;
 };
-export type PaymentType = 'online' | 'on_recieve';
+export type PaymentType = 'card' | 'cash';
 export type FormErrors = Partial<Record<keyof IOrder, string>>;
 
 export interface ApiResponse {
@@ -32,8 +33,8 @@ interface IProductModel {
 }
 
 export interface IAppState {
-  products: IProductModel[];
   basket: string[];
+  store: Product[];
   order: IOrder | null;
   loading: boolean;
 }
@@ -45,9 +46,9 @@ interface IBasketModel {
 }
 
 export interface IOrder {
-  products: IProduct[];
+  items: string[];
   payment?: PaymentType;
-  amount: number | null;
+  total: number | null;
   address: string;
   email: string;
   phone: string;

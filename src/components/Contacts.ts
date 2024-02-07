@@ -8,6 +8,8 @@ interface IContactsActions {
 
 export interface IContacts {
   isFilled: boolean;
+  phone: string;
+  email: string;
 }
 
 export class Contacts extends Component<IContacts> {
@@ -46,6 +48,14 @@ export class Contacts extends Component<IContacts> {
         this._phoneInput.addEventListener('input', actions.onPhoneInput);
       }
     }
+  }
+
+  get phone() {
+    return this._phoneInput.value;
+  }
+
+  get email() {
+    return this._emailInput.value;
   }
 
   get isFilled() {

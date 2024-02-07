@@ -1,5 +1,5 @@
 import { Page } from './components/Page';
-import { Api } from './components/base/api';
+import { Api, ApiListResponse } from './components/base/api';
 import { EventEmitter } from './components/base/events';
 import { Modal } from './components/common/Modal';
 import { StoreItem, StoreItemPreview } from './components/Card';
@@ -11,6 +11,7 @@ import './scss/styles.scss';
 import { Basket, StoreItemBasket } from './components/Basket';
 import { Order } from './components/Order';
 import { Contacts } from './components/Contacts';
+import { Success } from './components/Success';
 
 const api = new Api(API_URL);
 const events = new EventEmitter();
@@ -23,6 +24,7 @@ const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
 const cardBasketTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
 const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
 const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
+const successTemplate = ensureElement<HTMLTemplateElement>('#success')
 
 // Модель данных приложения
 const appData = new AppState({}, events);
@@ -88,7 +90,9 @@ events.on('modal:close', () => {
 // Открытие корзины
 events.on('basket:open', () => {
   const basket = new Basket('basket', cloneTemplate(basketTemplate), {
-    onClick: () => events.emit('basket:order'),
+    onClick: () => {
+      events.emit('basket:order')
+    },
   });
   const basketItems = appData.basket.map((item, index) => {
     const storeItem = new StoreItemBasket(
@@ -129,17 +133,24 @@ events.on('basket:order', () => {
   };
   const order = new Order('order', cloneTemplate(orderTemplate), {
     onClickNext: () => {
-      events.emit('order:contacts');
+      if (order.isFilled) {
+        appData.order.total = appData.getTotalBasketPrice()
+        appData.setItems();
+        events.emit('order:contacts');
+      }
     },
     onClickCash: () => {
       order.toggleCashButton();
+      appData.order.payment = 'cash'
       checkForm();
     },
     onClickCard: () => {
       order.toggleCardButton();
+      appData.order.payment = 'card'
       checkForm();
     },
     onInput: () => {
+      appData.order.address = order.address;
       checkForm();
     },
   });
@@ -152,13 +163,21 @@ events.on('basket:order', () => {
 events.on('order:contacts', () => {
   const contacts = new Contacts('contacts', cloneTemplate(contactsTemplate), {
     onPhoneInput: () => {
+      appData.order.phone = contacts.phone;
       checkForm();
     },
     onEmailInput: () => {
+      appData.order.email = contacts.email;
       checkForm();
     },
     onClickNext: () => {
-      console.log('complete!');
+      api.post('/order', appData.order).then((res) => {
+        events.emit('order:success', res)
+        appData.clearBasket()
+        page.counter = 0;
+      }).catch((err) => {
+        console.error(err);
+      });
     },
   });
   const checkForm = () => {
@@ -178,3 +197,17 @@ events.on('order:contacts', () => {
     content: contacts.render(),
   });
 });
+
+events.on('order:success', (res: ApiListResponse<string>) => {
+  const success = new Success('order-success', cloneTemplate(successTemplate), {
+    onClick: () => {
+      events.emit('modal:close')
+      modal.close()
+    }
+  })
+  modal.render({
+    content: success.render({
+      description: res.total
+    })
+  })
+})
