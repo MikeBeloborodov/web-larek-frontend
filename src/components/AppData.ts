@@ -48,6 +48,16 @@ export class AppState extends Model<IAppState> {
     this.order.items = this.basket.map(item => item.id)
   }
 
+  refreshOrder() {
+    this.order = {
+      items: [],
+      total: null,
+      address: '',
+      email: '',
+      phone: '',
+    };
+  }
+
   getTotalBasketPrice() {
     return this.basket.reduce((sum, next) => sum + next.price, 0);
   }

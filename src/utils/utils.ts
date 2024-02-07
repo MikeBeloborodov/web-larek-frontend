@@ -1,3 +1,6 @@
+import { Contacts } from "../components/Contacts";
+import { Order } from "../components/Order";
+
 export type SelectorCollection<T> = string | NodeListOf<Element> | T[];
 export type SelectorElement<T> = T | string;
 
@@ -59,3 +62,17 @@ export function handlePrice(price: number): string {
       .reverse()
       .join('');
 }
+
+export const checkForm = (element: Order | Contacts, selector: string) => {
+  if (element.isFilled) {
+    element.setDisabled(
+      ensureElement<HTMLButtonElement>(selector),
+      false
+    );
+  } else {
+    element.setDisabled(
+      ensureElement<HTMLButtonElement>(selector),
+      true
+    );
+  }
+};
