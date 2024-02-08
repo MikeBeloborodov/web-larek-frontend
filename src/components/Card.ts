@@ -15,6 +15,7 @@ export interface ICard {
   description: string;
   image: string;
   price: number | null;
+  selected: boolean;
 }
 
 export class Card extends Component<ICard> {
@@ -67,6 +68,10 @@ export class Card extends Component<ICard> {
 
   set image(value: string) {
     this._image.src = CDN_URL + value;
+  }
+
+  set selected(value: boolean) {
+    this._button.disabled = value;
   }
 
   set price(value: number | null) {

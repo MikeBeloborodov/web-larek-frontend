@@ -76,6 +76,7 @@ events.on('card:select', (item: Product) => {
   page.locked = true;
   const product = new StoreItemPreview(cloneTemplate(cardPreviewTemplate), {
     onClick: () => {
+      item.selected = true;
       appData.addToBasket(item);
       page.counter = appData.getTotal();
       modal.close();
@@ -89,6 +90,7 @@ events.on('card:select', (item: Product) => {
       category: item.category,
       description: item.description,
       price: item.price,
+      selected: item.selected
     }),
   });
 });

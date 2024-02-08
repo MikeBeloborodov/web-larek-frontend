@@ -9,6 +9,7 @@ export class Product extends Model<IProduct> {
   title: string;
   category: string;
   price: number | null;
+  selected: boolean;
 }
 
 export class AppState extends Model<IAppState> {
@@ -101,7 +102,7 @@ export class AppState extends Model<IAppState> {
   }
 
   setStore(items: IProduct[]) {
-    this.store = items.map((item) => new Product(item, this.events));
+    this.store = items.map((item) => new Product({ ...item, selected: false }, this.events));
     this.emitChanges('items:changed', { store: this.store });
   }
 }
