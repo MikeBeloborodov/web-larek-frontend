@@ -66,7 +66,7 @@ yarn build
 
 ## Автор
 
-- Github - [MikEBeloborodov](https://github.com/MikeBeloborodov)
+- Github - [MikeBeloborodov](https://github.com/MikeBeloborodov)
 - Frontend Mentor - [@MikeBeloborodov](https://www.frontendmentor.io/profile/MikeBeloborodov)
 
 ## Благодарность
