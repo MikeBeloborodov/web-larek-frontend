@@ -24,6 +24,7 @@ export interface IProduct {
   title: string;
   category: CategoryType;
   price: number | null;
+  selected: boolean;
 }
 
 export interface IAppState {
