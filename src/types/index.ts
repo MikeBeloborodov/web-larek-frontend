@@ -1,5 +1,4 @@
 import { Product } from '../components/AppData';
-import { Model } from '../components/base/Model';
 
 export type CategoryType =
   | 'другое'
@@ -7,10 +6,11 @@ export type CategoryType =
   | 'дополнительное'
   | 'кнопка'
   | 'хард-скил';
+
 export type CategoryMapping = {
   [Key in CategoryType]: string;
 };
-export type PaymentType = 'card' | 'cash';
+
 export type FormErrors = Partial<Record<keyof IOrderForm, string>>;
 
 export interface ApiResponse {
@@ -26,23 +26,11 @@ export interface IProduct {
   price: number | null;
 }
 
-interface IProductModel {
-  products: IProduct[];
-  addProduct(product: IProduct): void;
-  deleteProduct(productId: string): void;
-}
-
 export interface IAppState {
   basket: string[];
   store: Product[];
   order: IOrder | null;
   loading: boolean;
-}
-
-interface IBasketModel {
-  products: IProduct[];
-  addProduct(product: IProduct): void;
-  deleteProduct(productId: string): void;
 }
 
 export interface IOrder {
@@ -55,22 +43,8 @@ export interface IOrder {
 }
 
 export interface IOrderForm {
-  payment?: PaymentType;
+  payment?: string;
   address: string;
   email: string;
   phone: string;
-}
-
-export class ProductModel extends Model<IProduct> {
-  products: IProduct[];
-
-  addProduct(product: IProduct): void { }
-  deleteProduct(productId: string): void { }
-}
-
-class BasketModel implements IBasketModel {
-  products: IProduct[];
-
-  addProduct(product: IProduct): void { }
-  deleteProduct(productId: string): void { }
 }
