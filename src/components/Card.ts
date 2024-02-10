@@ -71,7 +71,9 @@ export class Card extends Component<ICard> {
   }
 
   set selected(value: boolean) {
-    this._button.disabled = value;
+    if (!this._button.disabled) {
+      this._button.disabled = value;
+    }
   }
 
   set price(value: number | null) {
