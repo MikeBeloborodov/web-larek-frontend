@@ -70,141 +70,125 @@ yarn build
 ### Типы данных
 
 ```TypeScript
-// Описывает категории товаров
-type CategoryType = 
+/*
+    Тип описывающий все возможные категории товара
+*/
+type CategoryType =
   | 'другое'
   | 'софт-скил'
   | 'дополнительное'
   | 'кнопка'
   | 'хард-скил';
 
-// Связывает категории товаров и CSS селектор
-type CategoryMapping = {
-  [Key in CategoryType]: string;
-};
-
-// Ошибки формы
+/*
+    Тип, описывающий ошибки валидации форм
+*/
 type FormErrors = Partial<Record<keyof IOrderForm, string>>;
 
-// Ответ сервера
-interface ApiResponse {
-  items: IProduct[];
-}
-
-// Интерфейс продукта
+/*
+  * Интерфейс, описывающий карточку товара в магазине
+* */
 interface IProduct {
+  // уникальный ID
   id: string;
+
+  // описание товара
   description: string;
+
+  // ссылка на картинку
   image: string;
+
+  // название
   title: string;
+
+  // категория товара
   category: CategoryType;
+
+  // цена товара, может быть null
   price: number | null;
+
+  // был данный товар добавлен в корзину или нет
   selected: boolean;
 }
 
-// Интерфейс заказа
-interface IOrder {
-  items: string[];
-  payment?: string;
-  total: number | null;
-  address: string;
-  email: string;
-  phone: string;
-}
-
-// Интерфейс формы заказа
-interface IOrderForm {
-  payment?: string;
-  address: string;
-  email: string;
-  phone: string;
-}
-
-// Интерфейс состояния приложния
+/*
+  * Интерфейс, описывающий внутренне состояние приложения
+    Используется для хранения карточек, корзины, заказа пользователя, ошибок
+    в формах
+    Так же имеет методы для работы с карточками и корзиной
+  * */
 interface IAppState {
-  basket: string[];
+  // Корзина с товарами
+  basket: Product[];
+
+  // Массив карточек товара
   store: Product[];
-  order: IOrder | null;
-  loading: boolean;
+
+  // Информация о заказе при покупке товара
+  order: IOrder;
+
+  // Ошибки при заполнении форм
+  formErrors: FormErrors;
+
+  // Метод для добавления товара в корзину
+  addToBasket(value: Product): void;
+
+  // Метод для удаления товара из корзины
+  deleteFromBasket(id: string): void;
+
+  // Метод для полной очистки корзины
+  clearBasket(): void;
+
+  // Метод для получения количества товаров в корзине
+  getBasketAmount(): number;
+
+  // Метод для получения суммы цены всех товаров в корзине
+  getTotalBasketPrice(): number;
+
+  // Метод для добавления ID товаров в корзине в поле items для order
+  setItems(): void;
+
+  // Метод для заполнения полей email, phone, address, payment в order
+  setOrderField(field: keyof IOrderForm, value: string): void;
+
+  // Валидация форм для окошка "контакты"
+  validateContacts(): boolean;
+
+  // Валидация форм для окошка "заказ"
+  validateOrder(): boolean;
+
+  // Очистить order после покупки товаров
+  refreshOrder(): boolean;
+
+  // Метод для превращения данных, полученых с сервера в тип данных приложения
+  setStore(items: IProduct[]): void;
+
+  // Метод для обновления поля selected во всех товарах после совершения покупки
+  resetSelected(): void;
 }
 
-// Тип имени события
-type EventName = string | RegExp;
-// Тип подписчика
-type Subscriber = Function;
-// Тип события
-type EmitterEvent = {
-  eventName: string,
-  data: unknown
-};
+/*
+  * Интерфейс, описывающий поля заказа товара
+  * */
+export interface IOrder {
+  // Массив ID купленных товаров
+  items: string[];
 
-// Интерфейс для класса EventEmitter
-interface IEvents {
-  on<T extends object>(event: EventName, callback: (data: T) => void): void;
-  emit<T extends object>(event: string, data?: T): void;
-  trigger<T extends object>(
-    event: string,
-    context?: Partial<T>
-  ): (data: T) => void;
-}
-
-// Интерфейс для состояния формы
-interface IFormState {
-  valid: boolean;
-  errors: string[];
-}
-
-// Интерфейс для модального окна
-interface IModalData {
-  content: HTMLElement;
-}
-
-// Интерфейс для страницы
-interface IPage {
-  counter: number;
-  store: HTMLElement[];
-  locked: boolean;
-}
-
-// Интерфейс для отображения товара в корзине
-interface IProductBasket extends IProduct {
-  id: string;
-  index: number;
-}
-
-// Интерфейс карточки
-interface ICard {
-  id: string;
-  title: string;
-  category: string;
-  description: string;
-  image: string;
-  price: number | null;
-}
-
-// Интерфейс для контактов
-interface IContacts {
-  phone: string;
-  email: string;
-}
-
-// Интерфейс для заказа
-interface IOrder {
-  address: string;
+  // Способ оплаты
   payment: string;
-}
 
-// Интерфейс для корзины
-interface IBasket {
-  list: HTMLElement[];
-  price: number;
-}
+  // Сумма заказа
+  total: number;
+  
+  // Адрес доставки
+  address: string;
 
-// Интерфейс для отображения успешной оплаты
-interface ISuccess {
-  description: number;
+  // Электронная почта
+  email: string;
+  
+  // Телефон
+  phone: string;
 }
-
 ```
 
 ### Модели данных
@@ -213,22 +197,41 @@ interface ISuccess {
 /**
  * Базовый компонент
  */
-abstract class Component<T> {
-  protected constructor(protected readonly container: HTMLElement) { }
-  toggleClass(element: HTMLElement, className: string, force?: boolean): void {}
-  protected setText(element: HTMLElement, value: string): void {}
-  setDisabled(element: HTMLElement, state: boolean): void {}
-  protected setHidden(element: HTMLElement): void {}
-  protected setVisible(element: HTMLElement): void {}
-  protected setImage(el: HTMLImageElement, src: string, alt?: string): void {}
-  render(data?: Partial<T>): HTMLElement {}
+export abstract class Component<T> {
+  // Конструктор принимает родительский элемент
+  protected constructor(protected readonly container: HTMLElement);
+
+  // Переключить класс
+  toggleClass(element: HTMLElement, className: string, force?: boolean): void;
+
+  // Установить текстовое содержимое
+  protected setText(element: HTMLElement, value: string): void;
+
+  // Сменить статус блокировки
+  setDisabled(element: HTMLElement, state: boolean): void;
+
+  // Скрыть
+  protected setHidden(element: HTMLElement): void;
+
+  // Показать
+  protected setVisible(element: HTMLElement): void;
+
+  // Установить изображение с алтернативным текстом
+  protected setImage(el: HTMLImageElement, src: string, alt?: string): void;
+
+  // Вернуть корневой DOM-элемент
+  render(data?: Partial<T>): HTMLElement;
 }
+
 
 /**
  * Базовая модель, чтобы можно было отличить ее от простых объектов с данными
  */
 abstract class Model<T> {
+  // Принимает данные для хранения, эвент эмиттер
   constructor(data: Partial<T>, protected events: IEvents) {}
+
+  // Вызывает эвент
   emitChanges(event: string, payload?: object) {}
 }
 
@@ -236,233 +239,133 @@ abstract class Model<T> {
  * Класс для работы с Api
  */
 class Api {
+  // Базовый URL для Api
   readonly baseUrl: string;
+
+  // Опции для fetch
   protected options: RequestInit;
-  constructor(baseUrl: string, options: RequestInit = {}) {}
-  protected async handleResponse(response: Response): Promise<Partial<object>> {}
-  async get(uri: string) {}
-  async post(uri: string, data: object) {}
+
+  // Конструктор принимает базовый URL и опции
+  constructor(baseUrl: string, options: RequestInit = {});
+
+  // Обрабатывает запрос и возвращает промис с данными
+  protected async handleResponse(response: Response): Promise<Partial<object>>;
+
+  // Get запрос
+  async get(uri: string);
+
+  // Post запрос
+  async post(uri: string, data: object);
 }
 
 /**
  * Обработчик событий
  */
 class EventEmitter implements IEvents {
+  // Map состоящий из событий и подписчиков
   _events: Map<EventName, Set<Subscriber>>;
+
   constructor() {}
+  
+  // Вызывает колбэк по имени события
   on<T extends object>(eventName: EventName, callback: (event: T) => void) {}
+
+  // Убирает колбэк с события
   off(eventName: EventName, callback: Subscriber) {}
+
+  // Вызывает событие
   emit<T extends object>(eventName: string, data?: T) {}
-  onAll(callback: (event: EmitterEvent) => void) {}
-  offAll() {}
-  trigger<T extends object>(eventName: string, context?: Partial<T>) {}
-}
-
-/**
- * Класс для HTML формы
- */
-class Form<T> extends Component<IFormState> {
-  protected _submit: HTMLButtonElement;
-  protected _errors: HTMLElement;
-  constructor(protected container: HTMLFormElement, protected events: IEvents) {}
-  protected onInputChange(field: keyof T, value: string) {}
-  set valid(value: boolean) {}
-  set errors(value: string) {}
-  render(state: Partial<T> & IFormState) {}
-}
-
-/**
- * Класс для модального окна
- */
-class Modal extends Component<IModalData> {
-  protected _closeButton: HTMLButtonElement;
-  protected _content: HTMLElement;
-  constructor(container: HTMLElement, protected events: IEvents) {}
-  set content(value: HTMLElement) {}
-  open() {}
-  close() {}
-  render(data: IModalData): HTMLElement {}
-}
-
-/**
- * Класс для продукта в магазине
- */
-class Product extends Model<IProduct> {
-  id: string;
-  description: string;
-  image: string;
-  title: string;
-  category: string;
-  price: number | null;
-  selected: boolean;
-}
-
-/**
- * Класс для состояния приложения
- */
-class AppState extends Model<IAppState> {
-  basket: Product[];
-  store: Product[];
-  loading: boolean;
-  order: IOrder;
-  formErrors: FormErrors = {};
-  addToBasket(value: Product) {}
-  deleteFromBasket(id: string) {}
-  clearBasket() {}
-  setBasket() {}
-  getTotal() {}
-  setItems() {}
-  setOrderField(field: keyof IOrderForm, value: string) {}
-  validateContacts() {}
-  validateOrder() {}
-  refreshOrder() {}
-  getTotalBasketPrice() {}
-  setStore(items: IProduct[]) {}
-}
-
-/**
- * Класс для страницы
- */
-class Page extends Component<IPage> {
-  protected _counter: HTMLElement;
-  protected _store: HTMLElement;
-  protected _wrapper: HTMLElement;
-  protected _basket: HTMLElement;
-  constructor(container: HTMLElement, protected events: IEvents) {}
-  set counter(value: number) {}
-  set store(items: HTMLElement[]) {}
-  set locked(value: boolean) {}
-}
-
-/**
- * Класс для корзины
- */
-class Basket extends Component<IBasket> {
-  protected _list: HTMLElement;
-  protected _price: HTMLElement;
-  protected _button: HTMLButtonElement;
-  constructor(protected blockName: string, container: HTMLElement, protected events: IEvents) {}
-  set price(price: number) {}
-  set list(items: HTMLElement[]) {}
-  refreshIndices() {}
-}
-
-/**
- * Класс для товара в корзине
- */
-class StoreItemBasket extends Component<IProductBasket> {
-  protected _index: HTMLElement;
-  protected _title: HTMLElement;
-  protected _price: HTMLElement;
-  protected _button: HTMLButtonElement;
-  constructor(protected blockName: string, container: HTMLElement, actions?: IStoreItemBasketActions) {}
-  set title(value: string) {}
-  set index(value: number) {}
-  set price(value: number) {}
-}
-
-/**
- * Класс для карточки
- */
-class Card extends Component<ICard> {
-  protected _title: HTMLElement;
-  protected _image: HTMLImageElement;
-  protected _category: HTMLElement;
-  protected _price: HTMLElement;
-  protected _button: HTMLButtonElement;
-  constructor(protected blockName: string, container: HTMLElement, actions?: ICardActions) {}
-  set id(value: string) {}
-  get id(): string {}
-  set title(value: string) {}
-  get title(): string {}
-  set image(value: string) {}
-  set price(value: number | null) {}
-  set selected(value: boolean) {}
-  set category(value: CategoryType) {}
-}
-
-/**
- * Класс для карточки на главной странице
- */
-class StoreItem extends Card {
-  constructor(container: HTMLElement, actions?: ICardActions) {}
-}
-
-/**
- * Класс для карточки в превью
- */
-class StoreItemPreview extends Card {
-  protected _description: HTMLElement;
-  constructor(container: HTMLElement, actions?: ICardActions) {}
-  set description(value: string) {}
-}
-
-/**
- * Класс для окошка для заполнения контактов
- */
-class Contacts extends Form<IContacts> {
-  constructor(container: HTMLFormElement, events: IEvents) {}
-  set phone(value: string) {}
-  set email(value: string) {}
-}
-
-/**
- * Класс для окошка заказа
- */
-class Order extends Form<IOrder> {
-  protected _card: HTMLButtonElement;
-  protected _cash: HTMLButtonElement;
-  constructor(protected blockName: string, container: HTMLFormElement, protected events: IEvents) {}
-  set address(value: string) {}
-  disableButtons() {}
-}
-
-/**
- * Класс для окошка успешной оплаты
- */
-class Success extends Component<ISuccess> {
-  protected _button: HTMLButtonElement;
-  protected _description: HTMLElement;
-  constructor(protected blockName: string, container: HTMLElement, actions?: ISuccessActions) {}
-  set description(value: number) {}
 }
 ```
 
 ### Описание событий
 
 ```TypeScript
-// Изменились элементы каталога
-events.on('items:changed', () => {});
+/*
+    Инициируется при изменении списка товаров и вызывает перерисовку
+    списка товаров на странице
+*/
+'items:changed'
 
-// Открытие карточки
-events.on('card:select', (item: Product) => {});
+/*
+    Инициируется при клике на карточку товара в классе StoreItem и приводит
+    к открытию модального окна с подробным описанием товара
+*/
+'card:select'
 
-// Открытие корзины
-events.on('basket:open', () => {});
+/*
+    Инициируется при клике на кнопку "В корзину" на карточке StoreItemPreview
+    В AppState добавляет товар в корзину, обновляет счётчик на корзине
+    в классе Page
+    Делает поле selected на товаре true для отключения кнопки, чтобы больше
+    товар добавить было нельзя
+*/
+'card:toBasket'
 
-// Оформить заказ
-events.on('basket:order', () => {});
+/*
+    Инициируется при клике на кнопку "корзина" и открывает модальное окно
+    с классом Basket, где отображаются товары добавленные в корзину
+*/
+'basket:open'
 
-// Изменилось состояние валидации заказа
-events.on('orderFormErrors:change', (errors: Partial<IOrderForm>) => {});
+/*
+    Инициируется при клике на кнопку удаления товара в корзине
+    Удаляет товар из массива basket в классе AppData
+    Обновляет счётчик корзины на странице
+    Обновляет поле selected на товаре, делая его false
+    Обновляет сумму заказа в корзине
+    Обвновляет порядковые номера в списке корзины
+*/
+'basket:delete'
 
-// Изменилось состояние валидации контактов
-events.on('contactsFormErrors:change', (errors: Partial<IOrderForm>) => {});
+/*
+    Инициируется при клике на кнопку "Оформить" в корзине
+    Открывает окно с формой для заполнения адреса и способа оплаты
+    Используемый класс Order
+*/
+'basket:order'
 
-// Изменились введенные данные
-events.on('orderInput:change', (data: { field: keyof IOrderForm, value: string }) => {});
+/*
+    Инициируется при нажатии на кнопку "Далее" на стадии заполнения адреса и
+    способа оплаты в окошке Order
+*/
+'order:submit'
 
-// Заполнить телефон и почту
-events.on('order:submit', () => {})
+/*
+    Инициируется при нажатии на кнопку "Оплатить" на стадии заполнения телефона
+    и электронной почты в окошке Contacts
+*/
+'contacts:submit'
 
-// Покупка товаров
-events.on('contacts:submit', () => {})
+/*
+    Инициируется при вводе данных в форму заказа Order и контактов Contacts
+    Начинает процесс валидации формы
+*/
+'orderInput:change'
 
-// Окно успешной покупки
-events.on('order:success', (res: ApiListResponse<string>) => {})
+/*
+    Инициируется при вводе данных в форму окошка Order и совершает
+    процесс валидации формы, возвращает ошибки формы
+*/
+'orderFormErrors:change'
 
-// Закрытие модального окна
-events.on('modal:close', () => {});
+/*
+    Инициируется при вводе данных в форму окошка Contacts и совершает
+    процесс валидации формы, возвращает ошибки формы
+*/
+'contactsFormErrors:change'
+
+/*
+    Инициируется при успешном ответе сервера при оплате товара
+    Открывает модальное окно сообщающее об успешной оплате
+*/
+'order:success'
+
+/*
+    Инициируется при клике на кнопку закрытия модального окна
+    или при клике на свободное место вокруг модального окна
+*/
+'modal:close'
 ```
 
 ## Автор

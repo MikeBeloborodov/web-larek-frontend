@@ -13,11 +13,11 @@ export class Product extends Model<IProduct> {
 }
 
 export class AppState extends Model<IAppState> {
-  basket: Product[];
+  basket: Product[] = [];
   store: Product[];
-  loading: boolean;
   order: IOrder = {
     items: [],
+    payment: '',
     total: null,
     address: '',
     email: '',
@@ -37,11 +37,7 @@ export class AppState extends Model<IAppState> {
     this.basket.length = 0;
   }
 
-  setBasket() {
-    this.basket = [];
-  }
-
-  getTotal() {
+  getBasketAmount() {
     return this.basket.length;
   }
 
@@ -104,5 +100,9 @@ export class AppState extends Model<IAppState> {
   setStore(items: IProduct[]) {
     this.store = items.map((item) => new Product({ ...item, selected: false }, this.events));
     this.emitChanges('items:changed', { store: this.store });
+  }
+
+  resetSelected() {
+    this.store.forEach(item => item.selected = false)
   }
 }

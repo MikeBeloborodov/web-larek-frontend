@@ -48,7 +48,6 @@ const success = new Success('order-success', cloneTemplate(successTemplate), {
 api
   .get('/product')
   .then((res: ApiResponse) => {
-    appData.setBasket();
     appData.setStore(res.items as IProduct[]);
   })
   .catch((err) => {
@@ -76,10 +75,7 @@ events.on('card:select', (item: Product) => {
   page.locked = true;
   const product = new StoreItemPreview(cloneTemplate(cardPreviewTemplate), {
     onClick: () => {
-      item.selected = true;
-      appData.addToBasket(item);
-      page.counter = appData.getTotal();
-      modal.close();
+      events.emit('card:toBasket', item)
     },
   });
   modal.render({
@@ -95,19 +91,23 @@ events.on('card:select', (item: Product) => {
   });
 });
 
+// Добавление товара в корзину
+events.on('card:toBasket', (item: Product) => {
+  item.selected = true;
+  appData.addToBasket(item);
+  page.counter = appData.getBasketAmount();
+  modal.close();
+})
+
 // Открытие корзины
 events.on('basket:open', () => {
+  page.locked = true
   const basketItems = appData.basket.map((item, index) => {
     const storeItem = new StoreItemBasket(
       'card',
       cloneTemplate(cardBasketTemplate),
       {
-        onDelete: () => {
-          appData.deleteFromBasket(item.id);
-          basket.refreshIndices();
-          basket.price = appData.getTotalBasketPrice();
-          page.counter = appData.getTotal();
-        }
+        onClick: () => events.emit('basket:delete', item)
       }
     );
     return storeItem.render({
@@ -123,6 +123,15 @@ events.on('basket:open', () => {
     }),
   });
 });
+
+// Удалить товар из корзины
+events.on('basket:delete', (item: Product) => {
+  appData.deleteFromBasket(item.id);
+  item.selected = false;
+  basket.refreshIndices();
+  basket.price = appData.getTotalBasketPrice();
+  page.counter = appData.getBasketAmount();
+})
 
 // Оформить заказ
 events.on('basket:order', () => {
@@ -179,6 +188,7 @@ events.on('contacts:submit', () => {
       appData.refreshOrder();
       order.disableButtons();
       page.counter = 0;
+      appData.resetSelected();
     })
     .catch((err) => {
       console.log(err)

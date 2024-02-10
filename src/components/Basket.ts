@@ -56,7 +56,7 @@ export interface IProductBasket extends IProduct {
 }
 
 export interface IStoreItemBasketActions {
-  onDelete: (event: MouseEvent) => void;
+  onClick: (event: MouseEvent) => void;
 }
 
 export class StoreItemBasket extends Component<IProductBasket> {
@@ -80,7 +80,7 @@ export class StoreItemBasket extends Component<IProductBasket> {
     if (this._button) {
       this._button.addEventListener('click', (evt) => {
         this.container.remove();
-        actions?.onDelete(evt);
+        actions?.onClick(evt);
       });
     }
   }
