@@ -12,9 +12,17 @@ export class Product extends Model<IProduct> {
   selected: boolean;
 }
 
+/*
+  * Класс, описывающий состояние приложения
+  * */
 export class AppState extends Model<IAppState> {
+  // Корзина с товарами
   basket: Product[] = [];
+
+  // Массив со всеми товарами
   store: Product[];
+
+  // Объект заказа клиента
   order: IOrder = {
     items: [],
     payment: '',
@@ -23,6 +31,8 @@ export class AppState extends Model<IAppState> {
     email: '',
     phone: '',
   };
+
+  // Объект с ошибками форм
   formErrors: FormErrors = {};
 
   addToBasket(value: Product) {

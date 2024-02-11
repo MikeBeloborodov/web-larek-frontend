@@ -19,12 +19,15 @@ export interface ICard {
 }
 
 export class Card extends Component<ICard> {
+  // Ссылки на внутренние элементы карточки
   protected _title: HTMLElement;
   protected _image: HTMLImageElement;
   protected _category: HTMLElement;
   protected _price: HTMLElement;
   protected _button: HTMLButtonElement;
 
+  // Конструктор принимает имя блока, родительский контейнер
+  // и объект с колбэк функциями
   constructor(
     protected blockName: string,
     container: HTMLElement,
@@ -50,32 +53,35 @@ export class Card extends Component<ICard> {
     }
   }
 
+  // Сеттер и геттер для уникального ID
   set id(value: string) {
     this.container.dataset.id = value;
   }
-
   get id(): string {
     return this.container.dataset.id || '';
   }
 
+  // Сеттер и гетер для названия
   set title(value: string) {
     this._title.textContent = value;
   }
-
   get title(): string {
     return this._title.textContent || '';
   }
 
+  // Сеттер для кратинки
   set image(value: string) {
     this._image.src = CDN_URL + value;
   }
 
+  // Сеттер для определения выбрали товар или нет
   set selected(value: boolean) {
     if (!this._button.disabled) {
       this._button.disabled = value;
     }
   }
 
+  // Сеттер для цены
   set price(value: number | null) {
     this._price.textContent = value
       ? handlePrice(value) + ' синапсов'
@@ -85,6 +91,7 @@ export class Card extends Component<ICard> {
     }
   }
 
+  // Сеттер для категории
   set category(value: CategoryType) {
     this._category.textContent = value;
     this._category.classList.add(categoryMapping[value]);

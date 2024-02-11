@@ -3,16 +3,27 @@ import { handlePrice } from '../utils/utils';
 import { Component } from './base/Component';
 import { IEvents } from './base/events';
 
+/*
+  * Интерфейс, описывающий корзину товаров
+  * */
 export interface IBasket {
+  // Массив элементов li с товаром
   list: HTMLElement[];
+
+  // Общая цена товаров
   price: number;
 }
 
+/*
+  * Класс, описывающий корзину товаров
+  * */
 export class Basket extends Component<IBasket> {
+  // Ссылки на внутренние элементы
   protected _list: HTMLElement;
   protected _price: HTMLElement;
   protected _button: HTMLButtonElement;
 
+  // Конструктор принимает имя блока, родительский элемент и обработчик событий
   constructor(
     protected blockName: string,
     container: HTMLElement,
@@ -29,17 +40,23 @@ export class Basket extends Component<IBasket> {
     }
   }
 
+  // Сеттер для общей цены
   set price(price: number) {
     this._price.textContent = handlePrice(price) + ' синапсов';
   }
 
+  // Сеттер для списка товаров 
   set list(items: HTMLElement[]) {
     this._list.replaceChildren(...items);
-    if (!items.length) {
-      this._button.disabled = true;
-    }
+    this._button.disabled = items.length ? false : true;
   }
 
+  // Метод отключающий кнопку "Оформить"
+  disableButton() {
+    this._button.disabled = true
+  }
+
+  // Метод для обновления индексов таблички при удалении товара из корзины
   refreshIndices() {
     Array.from(this._list.children).forEach(
       (item, index) =>
