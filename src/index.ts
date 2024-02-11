@@ -128,9 +128,12 @@ events.on('basket:open', () => {
 events.on('basket:delete', (item: Product) => {
   appData.deleteFromBasket(item.id);
   item.selected = false;
-  basket.refreshIndices();
   basket.price = appData.getTotalBasketPrice();
   page.counter = appData.getBasketAmount();
+  basket.refreshIndices();
+  if (!appData.basket.length) {
+    basket.disableButton();
+  }
 })
 
 // Оформить заказ
